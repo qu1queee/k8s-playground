@@ -15,11 +15,17 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 )
 
+var onlyOneSignalHandler = make(chan struct{})
+var shutdownSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
+
 func main() {
 	logrus.Infof("Starting CC controller")
 
+	// this calls a func that the controller-runtime already implements
+	// with a context, see https://github.com/kubernetes-sigs/controller-runtime/blob/master/pkg/manager/signals/signal.go#L27-L45
 	stopCh := SetupSignalHandler()
 
+	logrus.Infof("Getting k8s config")
 	cfg, err := config.GetConfig()
 	if err != nil {
 		os.Exit(1)
@@ -33,18 +39,19 @@ func main() {
 	controller := controller.NewController(
 		kubeClient,
 		shpclient,
-		exampleInformerFactory,
+		exampleInformerFactory.Shipwright().V1alpha1().BuildRuns(),
 	)
 
+	// run the informers
 	exampleInformerFactory.Start(stopCh)
+
+	// run the controller with two workers, basically two separate
+	// go routines that will consume events from the queue
 	if err = controller.Run(2, stopCh); err != nil {
 		logrus.Error("Error running controller: %s", err.Error())
 	}
 
 }
-
-var onlyOneSignalHandler = make(chan struct{})
-var shutdownSignals = []os.Signal{os.Interrupt, syscall.SIGTERM}
 
 // SetupSignalHandler registered for SIGTERM and SIGINT. A stop channel is returned
 // which is closed on one of these signals. If a second signal is caught, the program
