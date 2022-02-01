@@ -1,0 +1,34 @@
+---
+apiVersion: shipwright.io/v1alpha1
+kind: ClusterBuildStrategy
+metadata:
+  name: a-strategy
+spec:
+  parameters:
+  - name: version
+    description: "Product version"
+    type: string
+    default: "1.0"
+  - name: contributors
+    description: "Product version contributors"
+    type: array
+    defaults: []
+  buildSteps:
+    - name: validate-version
+      image: docker.io/library/bash:5.0.18@sha256:879f94a9da53dc064779e7a68339aecd60a9028ff884cacaa47ae752ca690404
+      env:
+      - name: VERSION_ARTIFACT
+        value: "3.0"
+      command:
+        - /bin/sh
+      args:
+        - -c
+        - |
+          echo "starting"
+          if [ "$(params.version)" == "${VERSION_ARTIFACT}" ]; then
+            echo "$(params.version) is the same as ${VERSION_ARTIFACT}"
+          else
+            echo "$(params.version) is NOT the same as ${VERSION_ARTIFACT}"
+          fi
+          echo "done"
+        - "$(params.contributors[*])" #can be validated on the pod object spec

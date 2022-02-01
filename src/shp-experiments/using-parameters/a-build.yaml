@@ -1,0 +1,28 @@
+---
+apiVersion: shipwright.io/v1alpha1
+kind: Build
+metadata:
+  name: a-build
+  annotations:
+    build.build.dev/build-run-deletion: "true"
+spec:
+  source:
+    url: https://github.com/shipwright-io/sample-go
+    contextDir: docker-build
+  paramValues:
+  - name: version
+    value: "2.0"
+  - name: contributors
+    values:
+    - value: Foo
+    - value: Bar
+    - configMapValue:
+        name: more-contributors
+        key: idperson
+  strategy:
+    name: a-strategy
+    kind: ClusterBuildStrategy
+  output:
+    image: docker.io/eeeoo/sample:latest
+    credentials:
+      name: example-secret
