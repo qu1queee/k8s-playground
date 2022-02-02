@@ -7,18 +7,16 @@ metadata:
     build.build.dev/build-run-deletion: "true"
 spec:
   source:
-    url: https://github.com/shipwright-io/sample-go
-    contextDir: docker-build
+    url: https://github.com/shipwright-io/build
   paramValues:
-  - name: version
-    value: "2.0"
-  - name: contributors
+  - name: filepath
+    value: ".github/draft_release_notes.sh"
+  - name: args
     values:
-    - value: Foo
-    - value: Bar
+    - value: "--color=auto"
     - configMapValue:
-        name: more-contributors
-        key: idperson
+       name: format
+       key: formattype
   strategy:
     name: a-strategy
     kind: ClusterBuildStrategy

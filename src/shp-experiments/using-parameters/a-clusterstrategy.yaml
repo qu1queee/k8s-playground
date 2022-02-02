@@ -5,30 +5,18 @@ metadata:
   name: a-strategy
 spec:
   parameters:
-  - name: version
-    description: "Product version"
+  - name: filepath
+    description: "Path to file"
     type: string
-    default: "1.0"
-  - name: contributors
-    description: "Product version contributors"
+  - name: args
+    description: "Arguments to pass to the shellcheck binary"
     type: array
     defaults: []
   buildSteps:
-    - name: validate-version
-      image: docker.io/library/bash:5.0.18@sha256:879f94a9da53dc064779e7a68339aecd60a9028ff884cacaa47ae752ca690404
-      env:
-      - name: VERSION_ARTIFACT
-        value: "3.0"
+    - name: check-script
+      image: docker.io/koalaman/shellcheck:v0.7.1@sha256:ad95c140f7bf5cc66e50e19da7d72c398583ba24c5866ac32c882eb3ddc153ee
       command:
-        - /bin/sh
+        - /bin/shellcheck
       args:
-        - -c
-        - |
-          echo "starting"
-          if [ "$(params.version)" == "${VERSION_ARTIFACT}" ]; then
-            echo "$(params.version) is the same as ${VERSION_ARTIFACT}"
-          else
-            echo "$(params.version) is NOT the same as ${VERSION_ARTIFACT}"
-          fi
-          echo "done"
-        - "$(params.contributors[*])" #can be validated on the pod object spec
+        - $(params.args[*])
+        - $(params.shp-source-context)/$(params.filepath)
